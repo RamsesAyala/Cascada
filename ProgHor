@@ -1,0 +1,85 @@
+import mysql.connector
+from tkinter import Tk, Label, Button, Entry, StringVar
+
+# Conexión a la base de datos
+cnx = mysql.connector.connect(
+    user='tu_usuario',
+    password='tu_contraseña',
+    host='tu_host',
+    database='tu_base_de_datos'
+)
+
+# Crear cursor
+cursor = cnx.cursor()
+
+# Crear tabla empleados si no existe
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS empleados (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(255),
+        horario_entrada TIME,
+        hora_llegada TIME,
+        horario_salida TIME,
+        hora_salida TIME
+    )
+''')
+
+# Función para registrar hora de entrada
+def registrar_entrada():
+    nombre = entry_nombre.get()
+    hora_entrada = entry_hora_entrada.get()
+    cursor.execute('''
+        INSERT INTO empleados (nombre, horario_entrada, hora_llegada)
+        VALUES (%s, %s, NULL)
+    ''', (nombre, hora_entrada))
+    cnx.commit()
+    label_estado.config(text='Hora de entrada registrada')
+
+# Función para registrar hora de salida
+def registrar_salida():
+    nombre = entry_nombre.get()
+    hora_salida = entry_hora_salida.get()
+    cursor.execute('''
+        UPDATE empleados
+        SET hora_salida = %s
+        WHERE nombre = %s
+    ''', (hora_salida, nombre))
+    cnx.commit()
+    label_estado.config(text='Hora de salida registrada')
+
+# Crear ventana principal
+root = Tk()
+root.title('Sistema de Horarios')
+
+# Crear etiquetas y entradas
+label_nombre = Label(root, text='Nombre:')
+label_nombre.grid(row=0, column=0)
+entry_nombre = Entry(root)
+entry_nombre.grid(row=0, column=1)
+
+label_hora_entrada = Label(root, text='Hora de entrada:')
+label_hora_entrada.grid(row=1, column=0)
+entry_hora_entrada = Entry(root)
+entry_hora_entrada.grid(row=1, column=1)
+
+label_hora_salida = Label(root, text='Hora de salida:')
+label_hora_salida.grid(row=2, column=0)
+entry_hora_salida = Entry(root)
+entry_hora_salida.grid(row=2, column=1)
+
+# Crear botones
+button_entrada = Button(root, text='Registrar hora de entrada', command=registrar_entrada)
+button_entrada.grid(row=3, column=0)
+
+button_salida = Button(root, text='Registrar hora de salida', command=registrar_salida)
+button_salida.grid(row=3, column=1)
+
+# Crear etiqueta de estado
+label_estado = Label(root, text='')
+label_estado.grid(row=4, column=0, columnspan=2)
+
+# Iniciar ventana principal
+root.mainloop()
+
+# Cerrar conexión a la base de datos
+cnx.close()
